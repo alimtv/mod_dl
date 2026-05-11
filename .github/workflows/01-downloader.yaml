@@ -230,10 +230,24 @@ jobs:
 
           # Main download loop with critical fix: "|| true" to prevent script from dying
           for URL in $URLS; do
-            FILENAME=$(basename "$URL" | sed 's/%20/ /g' | sed 's/%2F/-/g' | sed 's/[?#].*//')
-            FILENAME=$(echo "$FILENAME" | sed 's/[<>:"|?*]/_/g')
-            echo "Downloading $URL -> $FILENAME"
-            download_with_retry "$URL" "$FILENAME" || echo "Failed to download: $FILENAME" || true
+              ORIGINAL_FILENAME=$(basename "$URL" | sed 's/%20/ /g' | sed 's/%2F/-/g' | sed 's/[?#].*//')
+              ORIGINAL_FILENAME=$(echo "$ORIGINAL_FILENAME" | sed 's/[<>:"|?*]/_/g')
+              
+              # اگر فایلی با این نام از قبل وجود داشت، یک نام یکتا بساز
+              if [ -f "tmp_downloads/$ORIGINAL_FILENAME" ]; then
+                  BASENAME="${ORIGINAL_FILENAME%.*}"
+                  EXT="${ORIGINAL_FILENAME##*.}"
+                  COUNTER=1
+                  while [ -f "tmp_downloads/${BASENAME}_${COUNTER}.${EXT}" ]; do
+                      COUNTER=$((COUNTER + 1))
+                  done
+                  FILENAME="${BASENAME}_${COUNTER}.${EXT}"
+              else
+                  FILENAME="$ORIGINAL_FILENAME"
+              fi
+              
+              echo "Downloading $URL -> $FILENAME"
+              download_with_retry "$URL" "$FILENAME" || echo "Failed to download: $FILENAME" || true
           done
 
           if [ "$MODE" = "zip" ]; then
