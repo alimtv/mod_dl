@@ -21,7 +21,8 @@ on:
         required: false
         default: ''
         type: string
-
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 jobs:
   save-file:
     runs-on: ubuntu-latest
@@ -244,10 +245,10 @@ jobs:
           }
 
           for URL in $URLS; do
-            FILENAME=$(basename "$URL" | sed 's/%20/ /g' | sed 's/%2F/-/g' | sed 's/[?#].*//')
-            FILENAME=$(echo "$FILENAME" | sed 's/[<>:"|?*]/_/g')
-            echo "Downloading $URL -> $FILENAME"
-            download_with_retry "$URL" "$FILENAME" || echo "Failed to download: $FILENAME"
+              FILENAME=$(basename "$URL" | sed 's/%20/ /g' | sed 's/%2F/-/g' | sed 's/[?#].*//')
+              FILENAME=$(echo "$FILENAME" | sed 's/[<>:"|?*]/_/g')
+              echo "⬇️ دانلود $URL -> $FILENAME"
+              download_with_retry "$URL" "$FILENAME" || echo "❌ دانلود ناموفق: $FILENAME" || true
           done
 
           if [ "$MODE" = "zip" ]; then
@@ -362,6 +363,12 @@ jobs:
               fi
 
               SIZE=$(stat -c%s "$FILE")
+              # Skip files with invalid or zero size just to be extra safe
+              if [ "$SIZE" -le 0 ]; then
+                  echo "⚠️ WARNING: Skipping empty file: $FILE"
+                  rm -f "$FILE"
+                  continue
+              fi
 
               # Double-check size is valid
               if [ "$SIZE" -le 0 ]; then
