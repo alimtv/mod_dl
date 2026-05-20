@@ -20,6 +20,11 @@ on:
         required: false
         default: ''
         type: string
+      split_size:
+        description: 'Split size in MB (default: 45)'
+        required: false
+        type: number
+        default: 45
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -67,7 +72,7 @@ jobs:
           URLS="${{ github.event.inputs.urls }}"
           ZIP_PASSWORD="${{ github.event.inputs.password }}"
 
-          SPLIT_THRESHOLD_MB=45
+          SPLIT_THRESHOLD_MB="${{ github.event.inputs.split_size }}"
           SPLIT_THRESHOLD_BYTES=$(( SPLIT_THRESHOLD_MB * 1024 * 1024 ))
 
           REPO_OWNER="${{ github.repository_owner }}"
